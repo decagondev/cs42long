@@ -26,6 +26,19 @@ class Stack():
     def size(self):
         return len(self.storage)
 
+class Queue():
+    def __init__(self):
+        self.storage = []
+    
+    def enqueue(self, value):
+        self.storage.append(value)
+    
+    def dequeue(self):
+        return self.storage.pop(0)
+
+    def size(self):
+        return len(self.storage)
+
 
 # helper functions
 
@@ -76,6 +89,34 @@ def dft(row, col, islands, visited):
     return visited
 
 
+def bft(row, col, islands, visited):
+    # create a intermediate data structure
+    q = Queue()
+
+    # put the starting node on to our intermediate data structure.
+    q.enqueue( (row, col) )
+
+    # while our intermediate data structure is not empty
+    while q.size() > 0:
+        # get the node from our intermediate data structure.
+        v = q.dequeue()
+        # extract the row and col from our node.
+        row = v[0]
+        col = v[1]
+
+        # if our node is not in visited...
+        if not visited[row][col]:
+            # mark it as visited.
+            visited[row][col] = True
+
+            # add each of the nodes neighbors to our intermediate data structure
+            for neighbor in get_neighbors(row, col, islands):
+                q.enqueue(neighbor)
+    
+    # return visited to the caller
+    return visited
+
+
 
 
 def island_counter(islands):
@@ -95,7 +136,8 @@ def island_counter(islands):
                 # if it is a 1 (when we hit an actual island)
                 if islands[row][col] == 1:
                     # do a traversal and mark each of its neighbors as visited
-                    visited = dft(row, col, islands, visited)
+                    # visited = dft(row, col, islands, visited)
+                    visited = bft(row, col, islands, visited)
                     # increment a counter
                     counter += 1
                 # otherwise just mark the element as visited
@@ -117,5 +159,7 @@ islands = [[1, 0, 0, 1, 1, 0, 1, 1, 0, 1],
            [1, 0, 1, 1, 0, 0, 0, 1, 1, 0],
            [0, 1, 1, 0, 0, 0, 1, 1, 0, 0],
            [0, 0, 1, 1, 0, 1, 0, 0, 1, 0]]
+
+
 
 print(island_counter(islands))  # 13
