@@ -19,6 +19,7 @@ LOAD_REG = 3
 PRINT_REG = 4
 ADD = 6
 MUL = 7
+SUB = 8
 
 
 HLT = 0b00000001
