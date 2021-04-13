@@ -1,0 +1,23 @@
+################################################
+#  Program that does stuff...                  #
+#  By Tom........                              #
+################################################
+
+1 # Print Bob
+1 # Print Bob
+
+2 # Print the number 120
+120
+
+3 # load the num 30 in to reg 0
+0
+30
+
+3 # load the number 20 in to reg 1
+1
+20
+
+4 # print reg 0
+0
+
+0 # halt
