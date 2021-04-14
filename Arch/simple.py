@@ -20,10 +20,14 @@ PRINT_REG = 4
 ADD = 6
 MUL = 7
 SUB = 8
+PUSH = 9
+POP = 10
 
 
 HLT = 0b00000001
 LDI = 0b10000010
+# PUSH = 0b01000101
+# POP = 0b01000110
 
 ram = [0] * 256 # primary memory
 # ram = []
@@ -62,6 +66,10 @@ running = True
 pc = 0 # program counter index in to the ram to fetch and instruction
 
 registers = [0] * 8 # the actual registers inside the cpu
+sp = 7 # R7 === the actual stack pointer
+
+# set our stack pointer to point at 0xf4
+registers[sp] = 0xf4
 
 # fetch decode execute cycle
 while running:
@@ -112,8 +120,24 @@ while running:
         alu("SUB", rega_index, regb_index)
         # registers[rega_index] *= registers[regb_index]
         # pc += 3
+    
+    elif instruction == PUSH:
+        reg_index = ram[pc + 1]
+        val = registers[reg_index]
+        # decrement stack pointer
+        registers[sp] -= 1
+        # set the ram at the address pointed to by the stack pointer to the value
+        ram[registers[sp]] = val
+        pc += 2
+    
+    elif instruction == POP:
+        reg_index = ram[pc + 1]
+        # set the given reg to the value at the ram address pointed to by the stack pointer
+        registers[reg_index] = ram[registers[sp]]
 
-
+        # increment the stack pointer
+        registers[sp] += 1
+        pc += 2
 
     elif instruction == HALT:
         # execute
