@@ -12,6 +12,8 @@ ADD  = 0b10100000
 SUB  = 0b10100001
 MUL  = 0b10100010
 DIV  = 0b10100011
+CALL = 0b01010000
+RET = 0b00010001
 
 SP = 7
 
@@ -23,6 +25,7 @@ class CPU:
         self.pc = 0
         self.reg = [0] * 8
         self.ram = [0] * 256
+        self.reg[7] = 0xf4
 
         self.sets_pc = False
 
@@ -38,10 +41,10 @@ class CPU:
 
     def push_val(self, val):
         self.reg[SP] -= 1
-        self.ram_write(val, self.reg[7])
+        self.ram_write(self.reg[7], val)
         
     def pop_val(self):
-        val = self.ram_read(self.reg[7])
+        val = self.ram[self.reg[7]]
         self.reg[SP] += 1
 
         return val
@@ -64,7 +67,7 @@ class CPU:
 
                 # turn the number string in to an integer
                 val = int(num, 2)
-                print(val)
+                # print(val)
 
                 self.ram_write(address, val)
                 address += 1
@@ -106,7 +109,6 @@ class CPU:
 
     def run(self):
         """Run the CPU."""
-        pass
         # running loop
         self.running = True
 
@@ -115,6 +117,7 @@ class CPU:
             inst = self.ram[self.pc]
             opa = self.ram[self.pc + 1]
             opb = self.ram[self.pc + 2]
+            self.sets_pc = False
 
             # decode instruction size
             opcode_size = (inst >> 6) + 1
@@ -124,6 +127,7 @@ class CPU:
             if inst == HLT:
                 # execute
                 self.running = False
+                sys.exit(0)
             
             # decode
             elif inst == LDI:
@@ -134,6 +138,7 @@ class CPU:
                 num = opb
                 # put the number in the registers list at the index of reg_index
                 self.reg[reg_index] = num
+                self.sets_pc = False
 
             # elif inst == PUSH:
             #     # print("PUSH")
@@ -146,21 +151,36 @@ class CPU:
 
             elif inst == ADD:
                 self.alu("ADD", opa, opb)
+                self.sets_pc = False
 
             elif inst == SUB:
                 self.alu("SUB", opa, opb)
+                self.sets_pc = False
             
             elif inst == MUL:
                 self.alu("MUL", opa, opb)
+                self.sets_pc = False
 
             elif inst == DIV:
                 self.alu("MUL", opa, opb)
+                self.sets_pc = False
 
             elif inst == PUSH:
                 self.push_val(self.reg[opa])
+                self.sets_pc = False
 
             elif inst == POP:
                 self.reg[opa] = self.pop_val()
+                self.sets_pc = False
+
+            elif inst == CALL:
+                self.push_val(self.pc + 2)
+                self.pc = self.reg[opa]
+                self.sets_pc = True
+
+            elif inst == RET:
+                self.pc = self.pop_val()
+                self.sets_pc = True
                 
 
             # decode
@@ -178,9 +198,12 @@ class CPU:
             else:
                 print(f"Unknown instruction {inst}")
                 self.running = False
+                sys.exit(1)
 
             if not self.sets_pc:
                 self.pc += opcode_size
+            else:
+                pass
 
 if __name__ == "__main__":
     
