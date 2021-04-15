@@ -114,23 +114,23 @@ class CPU:
 
         while self.running:
             # fetch
-            inst = self.ram[self.pc]
+            ir = self.ram[self.pc]
             opa = self.ram[self.pc + 1]
             opb = self.ram[self.pc + 2]
-            self.sets_pc = False
+            self.sets_pc = ((ir >> 4) & 0b1) == 1
 
             # decode instruction size
-            opcode_size = (inst >> 6) + 1
+            opcode_size = (ir >> 6) + 1
 
             
             # decode
-            if inst == HLT:
+            if ir == HLT:
                 # execute
                 self.running = False
                 sys.exit(0)
             
             # decode
-            elif inst == LDI:
+            elif ir == LDI:
                 # execute
                 # get the reg index.
                 reg_index = opa
@@ -138,9 +138,8 @@ class CPU:
                 num = opb
                 # put the number in the registers list at the index of reg_index
                 self.reg[reg_index] = num
-                self.sets_pc = False
 
-            # elif inst == PUSH:
+            # elif ir == PUSH:
             #     # print("PUSH")
 
             #     # Decrement the Stack Pointer
@@ -149,55 +148,47 @@ class CPU:
             #     # Copy the value at the given register to the address in memory pointed to by the Stack Pointer.
             #     self.ram[self.reg[SP]] = self.reg[opa]
 
-            elif inst == ADD:
+            elif ir == ADD:
                 self.alu("ADD", opa, opb)
-                self.sets_pc = False
 
-            elif inst == SUB:
+            elif ir == SUB:
                 self.alu("SUB", opa, opb)
-                self.sets_pc = False
             
-            elif inst == MUL:
+            elif ir == MUL:
                 self.alu("MUL", opa, opb)
-                self.sets_pc = False
 
-            elif inst == DIV:
+            elif ir == DIV:
                 self.alu("MUL", opa, opb)
-                self.sets_pc = False
 
-            elif inst == PUSH:
+            elif ir == PUSH:
                 self.push_val(self.reg[opa])
-                self.sets_pc = False
 
-            elif inst == POP:
+            elif ir == POP:
                 self.reg[opa] = self.pop_val()
-                self.sets_pc = False
 
-            elif inst == CALL:
+            elif ir == CALL:
                 self.push_val(self.pc + 2)
                 self.pc = self.reg[opa]
-                self.sets_pc = True
 
-            elif inst == RET:
+            elif ir == RET:
                 self.pc = self.pop_val()
-                self.sets_pc = True
+
                 
 
             # decode
-            elif inst == PRN:
+            elif ir == PRN:
                 # execute
                 # get reg index.
                 reg_index = opa
                 print(self.reg[reg_index])
 
-            elif inst == PRA:
+            elif ir == PRA:
                 print(chr(self.reg[opa]), end='')
            
 
             # decode
             else:
-                print(f"Unknown instruction {inst}")
-                self.running = False
+                print(f"Unknown instruction {ir}")
                 sys.exit(1)
 
             if not self.sets_pc:
