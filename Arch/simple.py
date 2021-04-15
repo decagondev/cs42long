@@ -22,6 +22,8 @@ MUL = 7
 SUB = 8
 PUSH = 9
 POP = 10
+CALL = 11
+RET = 12
 
 
 HLT = 0b00000001
@@ -143,7 +145,24 @@ while running:
         # execute
         running = False
         sys.exit(0)
+
+    elif instruction == CALL:
+        # 1. push the address of the next instruction on to the stack
+        address_to_return_to = pc + 2
+        # decrement stack pointer
+        registers[sp] -= 1
+        # set the ram at the address pointed to by the stack pointer to the value
+        ram[registers[sp]] = address_to_return_to
+        
+        # 2. set the pc to the address stored in the given register
+        reg_index = ram[pc + 1]
+        address_to_call = registers[reg_index]
+        pc = address_to_call
     
+    elif instruction == RET:
+        pc = ram[registers[sp]]
+        registers[sp] += 1
+
     else:
         print("Invalid Instruction")
         sys.exit(1)

@@ -3,12 +3,6 @@
 #  By Tom........                              #
 ################################################
 
-1 # Print Bob
-1 # Print Bob
-
-2 # Print the number 120
-120
-
 3 # load the num 30 in to reg 0
 0
 30
@@ -18,14 +12,23 @@
 3 # load the number 20 in to reg 1
 1
 20
-
-4 # print reg 0 -> 30
-0
-4 # print reg 1 -> 20
-1
+# load address 18 in to reg 2
+3
+2
+18
+#call reg2
+11
+2
 10 # POP the top of stack to R1
 1
-4 # print reg 1 -> 30
-1
-
+# call reg 2
+11
+2
 0 # halt
+
+## print r1 twice subroutine??
+4
+1
+4
+1
+12
