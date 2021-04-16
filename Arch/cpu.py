@@ -2,7 +2,7 @@
 
 import sys
 from datetime import datetime
-import keyboard
+import pygame
 
 
 
@@ -43,6 +43,10 @@ JGT  = 0b01010111
 JGE  = 0b01011010
 JNE  = 0b01010110
 
+# graphics opcodes
+POKE = 0b11000001
+PEEK = 0b11000010
+
 
 # Reserved general-purpose register numbers:
 
@@ -69,14 +73,25 @@ class CPU:
         self.pc = 0
         self.fl = 0
         self.ie = 1
+        self.bank = 0
 
         self.reg = [0] * 8
         self.ram = [0] * 256
+        # self.ram0 = [0] * 256
+        # self.ram1 = [0] * 256
+        # self.ram2 = [0] * 256
+        # self.ram3 = [0] * 256
+        # self.vram = [0] * (640 * 480) # graphic card ram for ls8
         self.reg[7] = 0xf4
 
         self.last_timer_tick = None
         self.sets_pc = False
         self.running = False
+
+        # pygame stuff
+        pygame.init()
+        pygame.display.set_caption("LS8 Emulator!")
+        self.screen = pygame.display.set_mode((640, 480))
     
 
     # Helper Methods
@@ -95,9 +110,9 @@ class CPU:
         self.reg[SP] += 1
 
         return val
-    
-    # keyboard 
 
+    def set_pixel(self, surface, pos, color=(0, 255, 0)):
+        surface.fill(color, (pos, (1, 1)))
 
     def load(self, filename):
         """Load a program into memory."""
@@ -181,9 +196,7 @@ class CPU:
             self.reg[IS] |= IS_TIMER
 
     def check_for_keyboard_int(self):
-        if keyboard.is_pressed("a"):
-            self.reg[IS] |= IS_KEYBOARD
-            self.ram[0xf4] = 'a'
+        pass
 
 
 
@@ -240,7 +253,10 @@ class CPU:
 
             # interrupts
             self.check_for_timer_int()
-            self.check_for_keyboard_int()
+            # self.check_for_keyboard_int()
+
+
+
 
             self.handle_ints()
 
@@ -278,6 +294,11 @@ class CPU:
 
             #     # Copy the value at the given register to the address in memory pointed to by the Stack Pointer.
             #     self.ram[self.reg[SP]] = self.reg[opa]
+
+            elif ir == POKE:
+                x = opa
+                y = opb
+                self.set_pixel(self.screen, (x, y))
 
             elif ir == ADD:
                 self.alu("ADD", opa, opb)
@@ -400,6 +421,17 @@ class CPU:
                 self.pc += opcode_size
             else:
                 pass
+
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    print("quitting Emulator")
+                    self.running = False
+                elif event.type == pygame.KEYDOWN:
+                    self.reg[IS] |= IS_KEYBOARD
+                    self.ram_write(0xf4, event.key)
+                    print(f"Key: {chr(self.ram_read(0xf4))}")
+
+            pygame.display.flip()
 
 if __name__ == "__main__":
     

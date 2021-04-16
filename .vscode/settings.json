@@ -1,3 +1,5 @@
 {
-    "python.pythonPath": "/home/tom/.local/share/virtualenvs/Arch-8KqjLTX_/bin/python"
+    "python.linting.pylintArgs": [
+        "--extention-pkg-whitelist=lxml"
+    ]
 }
