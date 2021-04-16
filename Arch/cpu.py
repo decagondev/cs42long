@@ -157,6 +157,31 @@ class CPU:
         else:
             raise Exception("Unsupported ALU operation")
 
+
+    def handle_ints(self):
+        if not self.ie:  # see if interrupts enabled
+            return
+
+        # Mask out interrupts
+        masked_ints = self.reg[IM] & self.reg[IS]
+
+        for i in range(8):
+            # See if the interrupt triggered
+            if masked_ints & (1 << i):
+                self.ie = 0   # disable interrupts
+                self.reg[IS] &= ~(1 << i)  # clear bit for this interrupt
+
+                # Save all the work on the stack
+                self.push_val(self.pc)
+                self.push_val(self.fl)
+                for r in range(7):
+                    self.push_val(self.reg[r])
+
+                # Look up the address vector and jump to it
+                self.pc = self.ram_read(0xf8 + i)
+
+                break # no more processing
+
     def trace(self):
         """
         Handy function to print out the CPU state. You might want to call this
