@@ -348,26 +348,38 @@ class CPU:
             elif ir == JEQ:
                 if self.fl & FL_EQ:
                     self.pc = self.reg[opa]
+                else:
+                    self.sets_pc = False
 
             elif ir == JNE:
                 if not self.fl & FL_EQ:
                     self.pc = self.reg[opa]
+                else:
+                    self.sets_pc = False
 
             elif ir == JLT:
                 if not self.fl & FL_LT:
                     self.pc = self.reg[opa]
+                else:
+                    self.sets_pc = False
 
             elif ir == JLE:
                 if self.fl & FL_LT or self.fl & FL_EQ:
                     self.pc = self.reg[opa]
+                else:
+                    self.sets_pc = False
 
             elif ir == JGT:
                 if not self.fl & FL_GT:
                     self.pc = self.reg[opa]
+                else:
+                    self.sets_pc = False
 
             elif ir == JGE:
                 if self.fl & FL_GT or self.fl & FL_EQ:
                     self.pc = self.reg[opa]
+                else:
+                    self.sets_pc = False
 
             elif ir == PUSH:
                 self.push_val(self.reg[opa])
@@ -399,7 +411,7 @@ class CPU:
                 # enable interrupts
                 self.ie = 1
 
-                
+
 
             # decode
             elif ir == PRN:
