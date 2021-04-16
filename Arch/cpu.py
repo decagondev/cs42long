@@ -10,10 +10,11 @@ POP  = 0b01000110
 PUSH = 0b01000101
 ADD  = 0b10100000
 SUB  = 0b10100001
-MUL  = 0b10100010
-DIV  = 0b10100011
 CALL = 0b01010000
 RET = 0b00010001
+
+MUL  = 0b10100010
+DIV  = 0b10100011
 MOD = 0b10100100
 INC = 0b01100101
 DEC = 0b01100110
@@ -24,6 +25,18 @@ XOR = 0b10101011
 SHL = 0b10101100
 SHR = 0b10101101
 CMP = 0b10100111
+
+ST   = 0b10000100
+IRET = 0b00010011
+
+JEQ  = 0b01010101
+JLE  = 0b01011001
+JLT  = 0b01011000
+JMP  = 0b01010100
+JGT  = 0b01010111
+JGE  = 0b01011010
+JNE  = 0b01010110
+
 
 # Reserved general-purpose register numbers:
 
@@ -243,6 +256,33 @@ class CPU:
             
             elif ir == CMP:
                 self.alu("CMP", opa, opb)
+
+            elif ir == JMP:
+                self.pc = self.reg[opa]
+
+            elif ir == JEQ:
+                if self.fl & FL_EQ:
+                    self.pc = self.reg[opa]
+
+            elif ir == JNE:
+                if not self.fl & FL_EQ:
+                    self.pc = self.reg[opa]
+
+            elif ir == JLT:
+                if not self.fl & FL_LT:
+                    self.pc = self.reg[opa]
+
+            elif ir == JLE:
+                if self.fl & FL_LT or self.fl & FL_EQ:
+                    self.pc = self.reg[opa]
+
+            elif ir == JGT:
+                if not self.fl & FL_GT:
+                    self.pc = self.reg[opa]
+
+            elif ir == JGE:
+                if self.fl & FL_GT or self.fl & FL_EQ:
+                    self.pc = self.reg[opa]
 
             elif ir == PUSH:
                 self.push_val(self.reg[opa])
