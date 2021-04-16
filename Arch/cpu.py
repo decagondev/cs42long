@@ -14,8 +14,33 @@ MUL  = 0b10100010
 DIV  = 0b10100011
 CALL = 0b01010000
 RET = 0b00010001
+MOD = 0b10100100
+INC = 0b01100101
+DEC = 0b01100110
+AND = 0b10101000
+NOT = 0b01101001
+OR = 0b10101010
+XOR = 0b10101011
+SHL = 0b10101100
+SHR = 0b10101101
+CMP = 0b10100111
 
+# Reserved general-purpose register numbers:
+
+IM = 5
+IS = 6
 SP = 7
+
+# CMP flags:
+
+FL_LT = 0b100
+FL_GT = 0b010
+FL_EQ = 0b001
+
+# IS flags
+
+IS_TIMER    = 0b00000001
+IS_KEYBOARD = 0b00000010
 
 class CPU:
     """Main CPU class."""
@@ -23,12 +48,15 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.pc = 0
+        self.fl = 0
+        self.ie = 1
+
         self.reg = [0] * 8
         self.ram = [0] * 256
         self.reg[7] = 0xf4
 
+        self.last_timer_tick = None
         self.sets_pc = False
-
         self.running = False
     
 
@@ -84,6 +112,35 @@ class CPU:
             self.reg[reg_a] *= self.reg[reg_b]
         elif op == "DIV":
             self.reg[reg_a] /= self.reg[reg_b]
+        elif op == "MOD":
+            self.reg[reg_a] %= self.reg[reg_b]
+        elif op == "INC":
+            self.reg[reg_a] += 1
+        elif op == "DEC":
+            self.reg[reg_a] -= 1
+        elif op == "AND":
+            self.reg[reg_a]  &= self.reg[reg_b]
+        elif op == "NOT":
+            self.reg[reg_a] != self.reg[reg_a]
+        elif op == "OR":
+            self.reg[reg_a] |= self.reg[reg_b]
+
+        elif op == "XOR":
+            self.reg[reg_a] ^= self.reg[reg_b]
+        elif op == "SHL":
+            self.reg[reg_a] <<= self.reg[reg_b]
+        elif op == "SHR":
+            self.reg[reg_a] >>= self.reg[reg_b]
+        elif op == "CMP":
+            self.fl &= 0x11111000  # clear all CMP flags
+            if self.reg[reg_a] < self.reg[reg_b]:
+                self.fl |= FL_LT
+            elif self.reg[reg_a] > self.reg[reg_b]:
+                self.fl |= FL_GT
+            else:
+                self.fl |= FL_EQ
+
+            
         else:
             raise Exception("Unsupported ALU operation")
 
@@ -153,12 +210,39 @@ class CPU:
 
             elif ir == SUB:
                 self.alu("SUB", opa, opb)
-            
+
             elif ir == MUL:
                 self.alu("MUL", opa, opb)
 
             elif ir == DIV:
-                self.alu("MUL", opa, opb)
+                self.alu("DIV", opa, opb)
+
+            elif ir == AND:
+                self.alu("AND", opa, opb)
+
+            elif ir == OR:
+                self.alu("OR", opa, opb)
+
+            elif ir == XOR:
+                self.alu("XOR", opa, opb)
+
+            elif ir == NOT:
+                self.alu("NOT", opa, opb)
+
+            elif ir == DEC:
+                self.alu("DEC", opa, opb)
+            
+            elif ir == INC:
+                self.alu("INC", opa, opb)
+
+            elif ir == SHL:
+                self.alu("SHL", opa, opb)
+
+            elif ir == SHR:
+                self.alu("SHR", opa, opb)
+            
+            elif ir == CMP:
+                self.alu("CMP", opa, opb)
 
             elif ir == PUSH:
                 self.push_val(self.reg[opa])
