@@ -137,7 +137,6 @@ class CPU:
             self.reg[reg_a] != self.reg[reg_a]
         elif op == "OR":
             self.reg[reg_a] |= self.reg[reg_b]
-
         elif op == "XOR":
             self.reg[reg_a] ^= self.reg[reg_b]
         elif op == "SHL":
@@ -296,6 +295,23 @@ class CPU:
 
             elif ir == RET:
                 self.pc = self.pop_val()
+
+            elif ir == ST:
+                self.ram_write(self.reg[opb], self.reg[opa])
+
+            elif ir == LD:
+                self.reg[opa] = self.ram_read(self.reg[opb])
+
+            elif ir == IRET:
+                # return state from stack
+                for i in range(6, -1, -1):
+                    self.reg[i] = self.pop_val()
+                
+                self.lf = self.pop_val()
+                self.pc = self.pop_val()
+
+                # enable interrupts
+                self.ie = 1
 
                 
 
