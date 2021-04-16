@@ -1,6 +1,10 @@
 """CPU functionality."""
 
 import sys
+from datetime import datetime
+import keyboard
+
+
 
 LDI = 0b10000010
 LD   = 0b10000011
@@ -13,6 +17,7 @@ ADD  = 0b10100000
 SUB  = 0b10100001
 CALL = 0b01010000
 RET = 0b00010001
+ADDI = 0b10101111
 
 MUL  = 0b10100010
 DIV  = 0b10100011
@@ -90,6 +95,9 @@ class CPU:
         self.reg[SP] += 1
 
         return val
+    
+    # keyboard 
+
 
     def load(self, filename):
         """Load a program into memory."""
@@ -120,6 +128,8 @@ class CPU:
 
         if op == "ADD":
             self.reg[reg_a] += self.reg[reg_b]
+        elif op == "ADDI":
+            self.reg[reg_a] += reg_b
         elif op == "SUB":
             self.reg[reg_a] -= self.reg[reg_b]
         elif op == "MUL":
@@ -156,6 +166,25 @@ class CPU:
             
         else:
             raise Exception("Unsupported ALU operation")
+
+    def check_for_timer_int(self):
+        """Check the time to see if a timer interrupt should fire."""
+        if self.last_timer_tick == None:
+            self.last_timer_tick = datetime.now()
+
+        now = datetime.now()
+
+        diff = now - self.last_timer_tick
+
+        if diff.seconds >= 1:  # OK, fire!
+            self.last_timer_tick = now
+            self.reg[IS] |= IS_TIMER
+
+    def check_for_keyboard_int(self):
+        if keyboard.is_pressed("a"):
+            self.reg[IS] |= IS_KEYBOARD
+            self.ram[0xf4] = 'a'
+
 
 
     def handle_ints(self):
@@ -208,6 +237,13 @@ class CPU:
         self.running = True
 
         while self.running:
+
+            # interrupts
+            self.check_for_timer_int()
+            self.check_for_keyboard_int()
+
+            self.handle_ints()
+
             # fetch
             ir = self.ram[self.pc]
             opa = self.ram[self.pc + 1]
@@ -245,6 +281,9 @@ class CPU:
 
             elif ir == ADD:
                 self.alu("ADD", opa, opb)
+
+            elif ir == ADDI:
+                self.alu("ADDI", opa, opb)
 
             elif ir == SUB:
                 self.alu("SUB", opa, opb)
