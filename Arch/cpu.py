@@ -67,7 +67,7 @@ class CPU:
     def __init__(self):
         """Construct a new CPU."""
         self.pc = 0
-        self.fl = 0
+        self.fl = 0b00000000
         self.ie = 1
 
         self.reg = [0] * 8
@@ -327,26 +327,39 @@ class CPU:
             elif ir == JEQ:
                 if self.fl & FL_EQ:
                     self.pc = self.reg[opa]
+                else:
+                    self.sets_pc = False
+
 
             elif ir == JNE:
                 if not self.fl & FL_EQ:
                     self.pc = self.reg[opa]
+                else:
+                    self.sets_pc = False
 
             elif ir == JLT:
                 if not self.fl & FL_LT:
                     self.pc = self.reg[opa]
+                else:
+                    self.sets_pc = False
 
             elif ir == JLE:
                 if self.fl & FL_LT or self.fl & FL_EQ:
                     self.pc = self.reg[opa]
+                else:
+                    self.sets_pc = False
 
             elif ir == JGT:
                 if not self.fl & FL_GT:
                     self.pc = self.reg[opa]
+                else:
+                    self.sets_pc = False
 
             elif ir == JGE:
                 if self.fl & FL_GT or self.fl & FL_EQ:
                     self.pc = self.reg[opa]
+                else:
+                    self.sets_pc = False
 
             elif ir == PUSH:
                 self.push_val(self.reg[opa])
