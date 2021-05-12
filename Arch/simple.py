@@ -1,169 +1,114 @@
 import sys
-
-filename = ""
-
-if len(sys.argv) != 2:
-    print("Usage: python3 fileio.py <filename>")
-    sys.exit(1)
-else:
-    filename = sys.argv[1]
-
-
-
-
-# instruction set
-HALT = 0
-PRINT_BOB = 1
-PRINT_NUM = 2
-LOAD_REG = 3
-PRINT_REG = 4
-ADD = 6
-MUL = 7
-SUB = 8
-PUSH = 9
-POP = 10
-CALL = 11
-RET = 12
-
-
-HLT = 0b00000001
+HALT = 1
+PRINT_BOB = 2
+PRINT_NUM = 3
+STORE = 4
+PRINT_REG = 5
+PUSH = 6
+POP = 7
 LDI = 0b10000010
-# PUSH = 0b01000101
-# POP = 0b01000110
+HLT = 0b00000001
 
-ram = [0] * 256 # primary memory
-# ram = []
-def load_prog(filename):
-    try:
-        address = 0 # ram address
-        with open(filename) as f:
-            for line in f:
-                comment_split = line.split("#")
-                num = comment_split[0].strip()
-                if num == '':
-                    continue
 
-                ram[address] = int(num)
-                address += 1
-                
-    except FileNotFoundError:
-        print("file not found")
-        sys.exit(2)
-
-load_prog(filename)
-
-def alu(op, opera, operb):
+def alu(op, opa, opb):
     if op == "ADD":
-        registers[rega_index] += registers[regb_index]
-        pc += 3
-    elif op == "MUL":
-        registers[rega_index] *= registers[regb_index]
-        pc += 3
-    elif op == "SUB":
-        registers[rega_index] -= registers[regb_index]
-        pc += 3
+        reg[opa] += reg[opb]
 
-# cpu
-running = True
-pc = 0 # program counter index in to the ram to fetch and instruction
+ram = [0] * 256
 
-registers = [0] * 8 # the actual registers inside the cpu
-sp = 7 # R7 === the actual stack pointer
+sp = 7
 
-# set our stack pointer to point at 0xf4
-registers[sp] = 0xf4
+reg = [0] * 8
+reg[sp] = 0xf4
 
-# fetch decode execute cycle
-while running:
-    # fetch an instruction
-    instruction = ram[pc]
+# our program
+ram[0] = PRINT_BOB
+ram[1] = PRINT_BOB
+ram[2] = PRINT_NUM
+ram[3] = 34
+ram[4] = STORE
+ram[5] = 0
+ram[6] = 120
+ram[7] = PRINT_REG
+ram[8] = 0
+ram[9] = PUSH
+ram[10] = 0
+ram[11] = STORE
+ram[12] = 0
+ram[13] = 12
+ram[14] = PRINT_REG
+ram[15] = 0
+ram[16] = POP
+ram[17] = 0
+ram[18] = PRINT_REG
+ram[19] = 0
+ram[20] = HALT
 
-    # decode
-    if instruction == PRINT_BOB:
-        # excute
-        print("Bob")
-        pc += 1
+def load(filename):
+    with open(filename) as filedata:
+        addr = 0
+        for line in filedata:
+            
+            data = line.split('#')[0].strip()
+            if data == "":
+                continue
 
-    elif instruction == PRINT_NUM:
-        # excute
-        num = ram[pc + 1]
-        print(num)
-        pc += 2
-    
-    elif instruction == LOAD_REG:
-        reg_index = ram[pc + 1]
-        num = ram[pc + 2]
-        registers[reg_index] = num
-        pc += 3
-
-    elif instruction == PRINT_REG: # prn
-        reg_index = ram[pc + 1]
-        num = registers[reg_index]
-        print(num)
-        pc += 2
-
-    elif instruction == ADD:
-        rega_index = ram[pc + 1]
-        regb_index = ram[pc + 2]
-        alu("ADD", rega_index, regb_index)
-        # registers[rega_index] += registers[regb_index]
-        # pc += 3
-
-    elif instruction == MUL:
-        rega_index = ram[pc + 1]
-        regb_index = ram[pc + 2]
-        alu("MUL", rega_index, regb_index)
-        # registers[rega_index] *= registers[regb_index]
-        # pc += 3
-
-    elif instruction == SUB:
-        rega_index = ram[pc + 1]
-        regb_index = ram[pc + 2]
-        alu("SUB", rega_index, regb_index)
-        # registers[rega_index] *= registers[regb_index]
-        # pc += 3
-    
-    elif instruction == PUSH:
-        reg_index = ram[pc + 1]
-        val = registers[reg_index]
-        # decrement stack pointer
-        registers[sp] -= 1
-        # set the ram at the address pointed to by the stack pointer to the value
-        ram[registers[sp]] = val
-        pc += 2
-    
-    elif instruction == POP:
-        reg_index = ram[pc + 1]
-        # set the given reg to the value at the ram address pointed to by the stack pointer
-        registers[reg_index] = ram[registers[sp]]
-
-        # increment the stack pointer
-        registers[sp] += 1
-        pc += 2
-
-    elif instruction == HALT:
-        # execute
-        running = False
-        sys.exit(0)
-
-    elif instruction == CALL:
-        # 1. push the address of the next instruction on to the stack
-        address_to_return_to = pc + 2
-        # decrement stack pointer
-        registers[sp] -= 1
-        # set the ram at the address pointed to by the stack pointer to the value
-        ram[registers[sp]] = address_to_return_to
+            num = int(data)
+            ram[addr] = num
+            # self.ram_write(addr, num)
+            addr += 1
         
-        # 2. set the pc to the address stored in the given register
-        reg_index = ram[pc + 1]
-        address_to_call = registers[reg_index]
-        pc = address_to_call
+# if len(sys.argv) != 2:
+#     print(f"Usage: simple.py <filename>")
+#     sys.exit(1)
     
-    elif instruction == RET:
-        pc = ram[registers[sp]]
-        registers[sp] += 1
+# load(sys.argv[1])
 
-    else:
-        print("Invalid Instruction")
-        sys.exit(1)
+pc = 0
+
+running = True
+
+while running:
+    inst = ram[pc]
+
+    if inst == HALT:
+        print("Halting CPU")
+        running = False
+    elif inst == PRINT_BOB:
+        print("BOB")
+        pc += 1
+    elif inst == PRINT_NUM:
+        print(ram[pc + 1])
+        pc += 2
+    elif inst == STORE:
+        reg_index = ram[pc + 1]
+        data = ram[pc + 2]
+        reg[reg_index] = data
+        pc += 3
+    elif inst == PRINT_REG:
+        reg_index = ram[pc + 1]
+        print(reg[reg_index])
+        pc += 2
+    elif inst == PUSH:
+        # dec the SP
+        reg[sp] -= 1
+        # grab the index to the reg
+        reg_index = ram[pc + 1]
+
+        #get the value from the reg
+        value = reg[reg_index]
+        ram[reg[sp]] = value
+        pc += 2
+
+    elif inst == POP:
+        # grab the index to the reg
+        reg_index = ram[pc + 1]
+        # get the value from the top of the stack
+        value = ram[reg[sp]]
+        # inc my stack pointer
+        reg[sp] += 1
+        reg[reg_index] = value
+
+        pc += 2
+
 
